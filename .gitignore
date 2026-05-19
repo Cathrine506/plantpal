@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Local DB (optional — remove this line if you want DB in git)
+backend/database/*.db
+
+# Large training data (keep code, not images)
+training/dataset/
+
+# IDE / OS
+.cursor/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

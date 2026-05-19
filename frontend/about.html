@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantPal — About</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 PlantPal</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="scanner.html">Scan</a></li>
+      <li><a href="about.html" class="active">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle">☰</button>
+  </div>
+</nav>
+
+<main class="container page-content">
+  <h1 class="page-title">About PlantPal</h1>
+
+  <section class="about-section">
+    <h2>What is PlantPal?</h2>
+    <p>PlantPal is an AI-powered plant health assistant that combines computer vision, natural language processing, and real-time weather data to give you personalised, accurate plant care advice.</p>
+  </section>
+
+  <section class="about-section">
+    <h2>How it works</h2>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <div>
+          <h3>Upload a photo</h3>
+          <p>The AI scanner uses a fine-tuned MobileNetV2 model to classify leaf health: Healthy, Fungal Infection, Scorch, or Wilting — in under 2 seconds.</p>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <div>
+          <h3>Multi-modal fusion</h3>
+          <p>The result is cross-referenced with live weather (temperature, humidity, UV index) and your plant profile for higher-confidence diagnosis.</p>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <div>
+          <h3>GPT-powered advice</h3>
+          <p>Ask the AI chatbot any follow-up question. It remembers your plant, scan result, and previous conversation — no need to repeat yourself.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <h2>Technology stack</h2>
+    <div class="tech-grid">
+      <div class="tech-pill">🐍 Python 3.11 + Flask</div>
+      <div class="tech-pill">🧠 OpenAI GPT-4o-mini</div>
+      <div class="tech-pill">🔬 TensorFlow / MobileNetV2</div>
+      <div class="tech-pill">🗃️ SQLite + Drizzle-style queries</div>
+      <div class="tech-pill">🌦️ OpenWeatherMap API</div>
+      <div class="tech-pill">⚡ Vanilla JS + CSS Grid</div>
+    </div>
+  </section>
+
+  <section class="about-section">
+    <h2>Privacy</h2>
+    <p>All data is processed locally. Uploaded images are analysed in memory and not stored permanently. Chat history is saved only for the current session to power conversational memory.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>🌿 PlantPal AI — v3.0</span>
+    <nav class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="scanner.html">Scan</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+<script>
+  document.getElementById("nav-toggle").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("open");
+  });
+</script>
+</body>
+</html>

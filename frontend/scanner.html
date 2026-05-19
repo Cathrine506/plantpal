@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantPal — Leaf Scanner</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/chatbot.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 PlantPal</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="scanner.html" class="active">Scan</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</nav>
+
+<main class="scanner-main container">
+  <h1 class="page-title">🔬 Leaf Health Scanner</h1>
+  <p class="page-sub">Upload a clear photo of a leaf. The AI will detect disease and cross-reference your local weather.</p>
+
+  <div class="scanner-grid">
+    <!-- Upload Zone -->
+    <div class="scanner-left">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <div class="drop-zone-icon">📷</div>
+        <p class="drop-zone-text">Drag & drop a leaf photo here,<br />or <span class="drop-link" id="drop-link">browse files</span></p>
+        <p class="drop-zone-hint">JPG, PNG, WebP — max 16 MB</p>
+      </div>
+      <div class="preview-container" id="preview-container" style="display:none">
+        <img id="preview-img" class="preview-img" src="" alt="Preview" />
+        <button class="btn btn-outline remove-img-btn" id="remove-img">× Remove</button>
+      </div>
+
+      <!-- Plant selector for contextual scan -->
+      <div class="scan-options">
+        <label for="scan-plant-select">Plant (optional, improves context):</label>
+        <select id="scan-plant-select" class="scan-select">
+          <option value="">— Not specified —</option>
+          <option value="monstera">Monstera</option>
+          <option value="snake_plant">Snake Plant</option>
+          <option value="pothos">Pothos</option>
+          <option value="aloe_vera">Aloe Vera</option>
+          <option value="peace_lily">Peace Lily</option>
+          <option value="zz_plant">ZZ Plant</option>
+          <option value="fiddle_leaf_fig">Fiddle Leaf Fig</option>
+          <option value="spider_plant">Spider Plant</option>
+          <option value="succulent">Succulent</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary scan-btn" id="scan-btn" disabled>Analyse Leaf</button>
+    </div>
+
+    <!-- Results -->
+    <div class="scanner-right">
+      <div class="result-panel" id="result-panel">
+        <div class="result-placeholder" id="result-placeholder">
+          <div class="result-placeholder-icon">🌿</div>
+          <p>Results will appear here after scanning</p>
+        </div>
+
+        <div class="result-content" id="result-content" style="display:none">
+          <div class="result-header">
+            <div class="result-badge" id="result-badge"></div>
+            <div class="result-conf" id="result-conf"></div>
+          </div>
+
+          <div class="confidence-bar-wrap">
+            <div class="confidence-bar" id="confidence-bar"></div>
+          </div>
+
+          <div class="result-class-breakdown" id="result-breakdown"></div>
+
+          <p id="result-plant" style="display:none;font-size:.9rem;color:var(--text-secondary);margin-bottom:8px;"></p>
+
+          <div class="result-diagnosis-box" id="result-diagnosis"></div>
+
+          <div class="multi-modal-box" id="multi-modal-box" style="display:none">
+            <span class="mm-icon">🔗</span>
+            <span id="multi-modal-text"></span>
+          </div>
+
+          <div class="result-risks" id="result-risks"></div>
+
+          <button class="btn btn-secondary ask-ai-btn" id="ask-ai-btn">
+            💬 Ask AI about this diagnosis
+          </button>
+        </div>
+
+        <div class="scan-loading" id="scan-loading" style="display:none">
+          <div class="loading-spinner"></div>
+          <p>Analysing leaf… Please wait</p>
+        </div>
+
+        <div class="scan-error" id="scan-error" style="display:none">
+          <div class="error-icon">⚠️</div>
+          <p id="scan-error-text"></p>
+          <button class="btn btn-outline" id="retry-btn">Try Again</button>
+        </div>
+      </div>
+
+      <!-- Scan history -->
+      <div class="scan-history" id="scan-history"></div>
+    </div>
+  </div>
+</main>
+
+<!-- Chatbot (same as home page) -->
+<div class="chatbot-overlay" id="chatbot-overlay"></div>
+<div class="chatbot-panel" id="chatbot-panel">
+  <div class="chatbot-header">
+    <div class="chatbot-header-left">
+      <span class="chatbot-avatar">🌿</span>
+      <div>
+        <div class="chatbot-title">PlantPal AI</div>
+        <div class="chatbot-status" id="chatbot-status">Online</div>
+      </div>
+    </div>
+    <div class="chatbot-header-right">
+      <button class="chatbot-clear-btn" id="clear-chat" title="New conversation">↺</button>
+      <button class="chatbot-close-btn" id="chatbot-close" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="chatbot-plant-bar">
+    <label for="plant-select">Your plant:</label>
+    <select id="plant-select">
+      <option value="">— Select plant —</option>
+      <option value="monstera">Monstera</option>
+      <option value="snake_plant">Snake Plant</option>
+      <option value="pothos">Pothos</option>
+      <option value="aloe_vera">Aloe Vera</option>
+      <option value="peace_lily">Peace Lily</option>
+      <option value="zz_plant">ZZ Plant</option>
+      <option value="fiddle_leaf_fig">Fiddle Leaf Fig</option>
+      <option value="spider_plant">Spider Plant</option>
+      <option value="succulent">Succulent</option>
+    </select>
+  </div>
+  <div class="chatbot-messages" id="chatbot-messages">
+    <div class="chat-msg assistant">
+      <span class="chat-bubble">Upload a leaf photo and scan it — I'll use the result to give you a precise diagnosis and recovery plan! 🔬</span>
+    </div>
+  </div>
+  <div class="chatbot-suggestions" id="chatbot-suggestions">
+    <button class="suggestion-chip" data-msg="How do I treat fungal infection?">🍄 Treat fungal</button>
+    <button class="suggestion-chip" data-msg="How do I revive a wilting plant?">💧 Revive wilting</button>
+    <button class="suggestion-chip" data-msg="What causes leaf scorch?">🔥 Leaf scorch</button>
+    <button class="suggestion-chip" data-msg="My plant is healthy, how do I keep it that way?">💚 Stay healthy</button>
+  </div>
+  <div class="chatbot-input-row">
+    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Ask about your scan…" autocomplete="off" />
+    <button class="chatbot-send-btn" id="chatbot-send" aria-label="Send">➤</button>
+  </div>
+</div>
+
+<button class="chat-fab" id="chat-fab" title="Open PlantPal Chat">
+  <span class="fab-icon">🌿</span>
+  <span class="fab-badge" id="fab-badge"></span>
+</button>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>🌿 PlantPal AI — v3.0</span>
+    <nav class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="scanner.html">Scan</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/chatbot.js"></script>
+<script src="js/weather.js"></script>
+<script src="js/scanner.js"></script>
+<script>
+  document.getElementById("nav-toggle").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("open");
+  });
+</script>
+</body>
+</html>

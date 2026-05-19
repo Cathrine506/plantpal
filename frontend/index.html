@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantPal — AI Plant Health Assistant</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/chatbot.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 PlantPal</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="scanner.html">Scan</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Your AI Plant<br /><span class="hero-accent">Health Assistant</span></h1>
+    <p>Real-time disease detection, weather-aware care advice, and a conversational AI that remembers your plant's history.</p>
+    <div class="hero-cta">
+      <a href="scanner.html" class="btn btn-primary">Scan a Leaf</a>
+      <button class="btn btn-secondary" id="hero-chat-btn">Chat with AI</button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-card">🌿</div>
+  </div>
+</section>
+
+<!-- WEATHER DASHBOARD -->
+<section class="section weather-section" id="weather-section">
+  <div class="container">
+    <h2 class="section-title">Live Plant Conditions</h2>
+    <p class="section-sub" id="weather-location-label">Detecting your location…</p>
+    <div class="weather-grid" id="weather-grid">
+      <div class="weather-card" id="wc-temp">
+        <div class="wc-icon">🌡️</div>
+        <div class="wc-value" id="w-temp">--</div>
+        <div class="wc-label">Temperature</div>
+      </div>
+      <div class="weather-card" id="wc-hum">
+        <div class="wc-icon">💧</div>
+        <div class="wc-value" id="w-hum">--</div>
+        <div class="wc-label">Humidity</div>
+      </div>
+      <div class="weather-card" id="wc-uv">
+        <div class="wc-icon">☀️</div>
+        <div class="wc-value" id="w-uv">--</div>
+        <div class="wc-label">UV Index</div>
+      </div>
+      <div class="weather-card vitality-card">
+        <div class="wc-icon">💚</div>
+        <div class="wc-value" id="w-vitality">--</div>
+        <div class="wc-label">Vitality Score</div>
+        <div class="vitality-bar-wrap">
+          <div class="vitality-bar" id="vitality-bar"></div>
+        </div>
+      </div>
+    </div>
+    <div class="weather-risks" id="weather-risks"></div>
+  </div>
+</section>
+
+<!-- QUICK FEATURES -->
+<section class="section features-section">
+  <div class="container">
+    <h2 class="section-title">Everything Your Plant Needs</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔬</div>
+        <h3>AI Disease Scan</h3>
+        <p>Upload a leaf photo. Our MobileNetV2 model detects Fungal, Scorch, Wilting, or Healthy in seconds.</p>
+        <a href="scanner.html" class="feature-link">Scan Now →</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>GPT-Powered Chatbot</h3>
+        <p>Ask anything. The AI fuses your scan results, weather, and plant profile into personalised, context-aware answers.</p>
+        <button class="feature-link btn-link" id="feature-chat-btn">Open Chat →</button>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌦️</div>
+        <h3>Weather-Aware Care</h3>
+        <p>Real-time weather triggers watering, humidity, and UV alerts specific to your plant and location.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Conversational Memory</h3>
+        <p>The AI remembers what you discussed earlier in the session — no need to repeat your plant name or symptoms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHATBOT -->
+<div class="chatbot-overlay" id="chatbot-overlay"></div>
+<div class="chatbot-panel" id="chatbot-panel" aria-label="PlantPal Chat">
+  <div class="chatbot-header">
+    <div class="chatbot-header-left">
+      <span class="chatbot-avatar">🌿</span>
+      <div>
+        <div class="chatbot-title">PlantPal AI</div>
+        <div class="chatbot-status" id="chatbot-status">Online</div>
+      </div>
+    </div>
+    <div class="chatbot-header-right">
+      <button class="chatbot-clear-btn" id="clear-chat" title="New conversation">↺</button>
+      <button class="chatbot-close-btn" id="chatbot-close" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="chatbot-plant-bar" id="chatbot-plant-bar">
+    <label for="plant-select">Your plant:</label>
+    <select id="plant-select">
+      <option value="">— Select plant —</option>
+      <option value="monstera">Monstera</option>
+      <option value="snake_plant">Snake Plant</option>
+      <option value="pothos">Pothos</option>
+      <option value="aloe_vera">Aloe Vera</option>
+      <option value="peace_lily">Peace Lily</option>
+      <option value="zz_plant">ZZ Plant</option>
+      <option value="fiddle_leaf_fig">Fiddle Leaf Fig</option>
+      <option value="spider_plant">Spider Plant</option>
+      <option value="succulent">Succulent</option>
+    </select>
+  </div>
+
+  <div class="chatbot-messages" id="chatbot-messages">
+    <div class="chat-msg assistant">
+      <span class="chat-bubble">
+        Hi! I'm your AI Plant Agronomist. 🌿 Select your plant above and ask me anything — watering, disease, weather care, you name it. I'll remember what we discuss!
+      </span>
+    </div>
+  </div>
+
+  <div class="chatbot-suggestions" id="chatbot-suggestions">
+    <button class="suggestion-chip" data-msg="How often should I water?">💧 Watering schedule</button>
+    <button class="suggestion-chip" data-msg="Why are my leaves turning yellow?">🍂 Yellowing leaves</button>
+    <button class="suggestion-chip" data-msg="What's the ideal humidity for my plant?">💨 Humidity guide</button>
+    <button class="suggestion-chip" data-msg="My plant looks like it's dying, help!">🚨 Emergency help</button>
+  </div>
+
+  <div class="chatbot-input-row">
+    <input type="text" id="chatbot-input" class="chatbot-input" placeholder="Ask about your plant…" autocomplete="off" />
+    <button class="chatbot-send-btn" id="chatbot-send" aria-label="Send">➤</button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="chat-fab" id="chat-fab" title="Open PlantPal Chat">
+  <span class="fab-icon">🌿</span>
+  <span class="fab-badge" id="fab-badge"></span>
+</button>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>🌿 PlantPal AI — v3.0</span>
+    <nav class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="scanner.html">Scan</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="js/chatbot.js"></script>
+<script src="js/weather.js"></script>
+<script>
+  // Nav toggle
+  document.getElementById("nav-toggle").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("open");
+  });
+
+  // Hero / feature buttons → open chat
+  ["hero-chat-btn","feature-chat-btn"].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener("click", () => window.PlantPalChat && window.PlantPalChat.open());
+  });
+</script>
+</body>
+</html>

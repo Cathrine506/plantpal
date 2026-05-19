@@ -1,0 +1,132 @@
+/* General Styles */
+*
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html,body {
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+
+    background-color: white;
+    color: #07250c;
+    scroll-behavior: smooth;
+      
+}
+.wrapper
+ {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;  /* horizontal center */
+    align-items: center;      /* vertical center */
+    padding: 20px;
+    text-align: center;       /* optional: center text */
+  }
+  
+
+/* Navigation Bar */
+nav {
+    background-color: #112c12;
+    padding: 15px 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+nav ul {
+    list-style: none;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 20px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav ul li a:hover {
+    color: #dfffd6;
+}
+
+/* Sections */
+section {
+    text-align: center;
+    padding: 100px 20px;
+    margin-top: 60px;
+}
+
+#home {
+    background: url('https://source.unsplash.com/1600x900/?plants,nature') no-repeat center/cover;
+    color: white;
+    padding: 150px 20px;
+}
+
+h1, h2 {
+    font-size: 2.5rem;
+}
+
+p {
+    font-size: 1.2rem;
+    text-align: left;
+}
+
+/* File Upload */
+input[type="file"] {
+    background: white;
+    border: 2px solid #4CAF50;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Contact Form */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+input, textarea {
+    width: 80%;
+    max-width: 400px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #4CAF50;
+    outline: none;
+    font-size: 1rem;
+}
+
+button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #388E3C;
+}
+

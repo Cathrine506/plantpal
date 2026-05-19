@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlantPal — Contact</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🌿 PlantPal</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="scanner.html">Scan</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="nav-toggle">☰</button>
+  </div>
+</nav>
+
+<main class="container page-content">
+  <h1 class="page-title">Contact Us</h1>
+  <p class="page-sub">Questions, feedback, or issues? We'd love to hear from you.</p>
+
+  <form class="contact-form" id="contact-form" novalidate>
+    <div class="form-group">
+      <label for="cf-name">Name</label>
+      <input type="text" id="cf-name" class="form-input" placeholder="Your name" required />
+    </div>
+    <div class="form-group">
+      <label for="cf-email">Email</label>
+      <input type="email" id="cf-email" class="form-input" placeholder="you@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="cf-subject">Subject</label>
+      <select id="cf-subject" class="form-input">
+        <option>General question</option>
+        <option>Bug report</option>
+        <option>Feature request</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="cf-msg">Message</label>
+      <textarea id="cf-msg" class="form-input form-textarea" placeholder="Describe your question or issue…" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Message</button>
+    <div class="form-feedback" id="form-feedback"></div>
+  </form>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>🌿 PlantPal AI — v3.0</span>
+    <nav class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="scanner.html">Scan</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+<script>
+  document.getElementById("nav-toggle").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("open");
+  });
+  document.getElementById("contact-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const fb = document.getElementById("form-feedback");
+    fb.textContent = "✅ Thank you! We'll get back to you within 24 hours.";
+    fb.style.color = "var(--green-600)";
+    e.target.reset();
+  });
+</script>
+</body>
+</html>

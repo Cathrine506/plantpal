@@ -59,7 +59,7 @@ def _build_diagnosis(label: str, confidence: float, weather: dict, result: dict 
         plant_pct = round((result.get("plant_confidence") or 0) * 100)
         plant_line = f" Plant identified as {result['plant_name']} ({plant_pct}% match)."
 
-    if label.lower() in ("healthy", "none") or result.get("is_healthy"):
+    if "healthy" in label.lower() or label.lower() in ("healthy", "none") or result.get("is_healthy"):
         cond = f" Conditions in {city}: {temp}°C, {hum}% humidity." if weather else ""
         return f"Your plant appears healthy ({conf_pct}% confidence).{plant_line}{cond} Continue your current care routine and scan again in 7 days."
 
@@ -80,8 +80,10 @@ def _build_diagnosis(label: str, confidence: float, weather: dict, result: dict 
                 f"Move the plant away from direct sun, water in the morning, "
                 f"and consider a sheer curtain to filter harsh light.")
 
+    pretty = label.replace("___", " — ").replace("_", " ")
+    source_note = " (your trained model)" if result.get("source") == "local_model" else ""
     return (
-        f"{label} detected ({conf_pct}% confidence).{plant_line} "
+        f"{pretty} detected ({conf_pct}% confidence).{source_note}{plant_line} "
         f"Please consult the chatbot for personalised recovery advice."
     )
 

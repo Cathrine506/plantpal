@@ -27,8 +27,8 @@ IMG_SIZE = (224, 224)
 _model = None
 _class_labels = []
 _model_loaded = False
+_model_load_failed = False
 
-# Project root model/ (not backend/model/)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 MODEL_DIR = PROJECT_ROOT / "model"
 MODEL_PATH = MODEL_DIR / "plant_model.h5"
@@ -44,33 +44,72 @@ def _labels_file() -> Path | None:
     return None
 
 
-def _load_model():
-    global _model, _class_labels, _model_loaded
+def _model_available() -> bool:
+    return MODEL_PATH.exists() and MODEL_PATH.stat().st_size > 0 and _labels_file() is not None
+
+
+def _load_model() -> bool:
+    """Load plant_model.h5 once. Returns True if ready for inference."""
+    global _model, _class_labels, _model_loaded, _model_load_failed
+    if _model is not None:
+        return True
+    if _model_load_failed:
+        return False
     if _model_loaded:
-        return
+        return _model is not None
     _model_loaded = True
+
     if not TF_AVAILABLE:
-        print("[scan] TensorFlow not installed — local model unavailable")
-        return
+        print("[scan] TensorFlow not installed — will try Plant.id fallback")
+        return False
+    if not _model_available():
+        print(f"[scan] No trained model at {MODEL_PATH}")
+        return False
+
     labels_file = _labels_file()
     try:
-        if (
-            MODEL_PATH.exists()
-            and MODEL_PATH.stat().st_size > 0
-            and labels_file
-        ):
-            _model = tf.keras.models.load_model(str(MODEL_PATH))
-            with open(labels_file, encoding="utf-8") as f:
-                _class_labels = json.load(f)
-            print(f"[scan] Local model loaded ({len(_class_labels)} classes)")
-        else:
-            print(f"[scan] No trained model at {MODEL_PATH} (train with training/train_model.py)")
+        _model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+        with open(labels_file, encoding="utf-8") as f:
+            _class_labels = json.load(f)
+        print(f"[scan] Local model loaded ({len(_class_labels)} classes)")
+        return True
     except Exception as e:
+        _model_load_failed = True
         print(f"[scan] Could not load local model: {e}")
+        return False
+
+
+def _predict_local(img: "Image.Image") -> dict | None:
+    """Run trained MobileNetV2 model. Returns None if unavailable or inference fails."""
+    if not _load_model():
+        return None
+    try:
+        arr = _preprocess(img)
+        preds = _model.predict(arr, verbose=0)[0]
+        top_idx = int(np.argmax(preds))
+        top_conf = float(round(float(preds[top_idx]), 4))
+        label = _class_labels[top_idx]
+        all_scores = {
+            _class_labels[i]: round(float(preds[i]), 4)
+            for i in range(len(_class_labels))
+        }
+        return {
+            "label": label,
+            "confidence": top_conf,
+            "all_scores": all_scores,
+            "disease": label,
+            "disease_confidence": top_conf,
+            "simulated": False,
+            "source": "local_model",
+            "severity": _estimate_scan_severity(label, top_conf),
+        }
+    except Exception as e:
+        print(f"[scan] Local prediction failed: {e}")
+        return None
 
 
 def _call_plant_id_api(image_bytes: bytes) -> dict | None:
-    """Call Plant.id v3 for plant + disease identification."""
+    """Plant.id fallback when local model is missing or fails."""
     if not PLANT_ID_API_KEY:
         return None
     try:
@@ -122,7 +161,8 @@ def _call_plant_id_api(image_bytes: bytes) -> dict | None:
 
 
 def _estimate_scan_severity(label: str, confidence: float) -> str:
-    if label.lower() in ("healthy", "none"):
+    name = label.lower()
+    if "healthy" in name or name in ("healthy", "none"):
         return "none"
     if confidence > 0.8:
         return "high"
@@ -150,43 +190,28 @@ def predict_image(image_source) -> dict:
     except Exception as e:
         return {"error": f"Could not open image: {e}"}
 
-    # 1. Plant.id API
+    # 1. Your trained model (primary)
+    local_result = _predict_local(img)
+    if local_result:
+        return local_result
+
+    # 2. Plant.id API (fallback)
     api_result = _call_plant_id_api(img_bytes)
     if api_result:
         api_result["severity"] = _estimate_scan_severity(
             api_result["label"], api_result["confidence"]
         )
+        api_result["fallback"] = True
         return api_result
 
-    # 2. Local trained model
-    _load_model()
-    if _model and _class_labels:
-        arr = _preprocess(img)
-        preds = _model.predict(arr, verbose=0)[0]
-        top_idx = int(np.argmax(preds))
-        top_conf = float(round(float(preds[top_idx]), 4))
-        label = _class_labels[top_idx]
-        all_scores = {
-            _class_labels[i]: round(float(preds[i]), 4)
-            for i in range(len(_class_labels))
-        }
-        return {
-            "label": label,
-            "confidence": top_conf,
-            "all_scores": all_scores,
-            "disease": label,
-            "disease_confidence": top_conf,
-            "simulated": False,
-            "source": "local_model",
-            "severity": _estimate_scan_severity(label, top_conf),
-        }
-
-    # 3. Nothing available
+    # 3. Nothing worked
     hints = []
+    if not _model_available():
+        hints.append("Train local model: cd training && python train_model.py")
+    elif not TF_AVAILABLE:
+        hints.append("Install TensorFlow for local model, or set PLANT_ID_API_KEY for fallback")
     if not PLANT_ID_API_KEY:
-        hints.append("Set PLANT_ID_API_KEY in .env")
-    if not MODEL_PATH.exists() or MODEL_PATH.stat().st_size == 0:
-        hints.append("Train a local model: cd training && python train_model.py")
+        hints.append("Set PLANT_ID_API_KEY in .env for API fallback")
     return {
         "error": "Scan unavailable. " + " ".join(hints) if hints else "Scan unavailable.",
         "simulated": False,

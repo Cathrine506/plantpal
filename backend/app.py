@@ -7,7 +7,6 @@ Open: http://localhost:5000
 
 import os
 import sys
-from predict import predict_image
 
 # Add backend directory to path so imports work
 sys.path.insert(0, os.path.dirname(__file__))
@@ -69,19 +68,6 @@ def create_app() -> Flask:
     @app.errorhandler(500)
     def server_error(e):
         return jsonify({"error": "Internal server error"}), 500
-
-    @app.route("/predict", methods=["POST"])
-    def predict():
-        file = request.files["image"]
-
-        filepath = "temp.jpg"
-        file.save(filepath)
-
-        result = predict_image(filepath)
-
-        return jsonify(result)
-
-
 
     return app
 

@@ -174,10 +174,10 @@
     }
 
     // Simulated badge
-    if (data.simulated) {
+    if (data.fallback) {
       const notice = document.createElement("div");
       notice.style.cssText = "font-size:.8rem;color:#94a3b8;margin-top:8px;font-style:italic;";
-      notice.textContent = "⚠️ Simulation mode — place a trained plant_model.h5 in /model to enable real detection.";
+      notice.textContent = "Plant.id fallback (local model was not used for this scan).";
       $id("result-content").appendChild(notice);
     }
 

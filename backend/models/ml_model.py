@@ -3,14 +3,13 @@ import json
 import threading
 from pathlib import Path
 
-TF_AVAILABLE = False
-try:
-    import tensorflow as tf
-    from tensorflow.keras import layers, models
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    TF_AVAILABLE = True
-except ImportError:
-    pass
+def _tf_imports():
+    try:
+        import tensorflow as tf
+        from tensorflow.keras.preprocessing.image import ImageDataGenerator
+        return tf, ImageDataGenerator, True
+    except ImportError:
+        return None, None, False
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 MODEL_DIR = PROJECT_ROOT / "model"
@@ -37,7 +36,8 @@ def start_training(epochs: int = EPOCHS, batch_size: int = BATCH_SIZE) -> dict:
     global EPOCHS, BATCH_SIZE
     if train_status["running"]:
         return {"error": "Training already in progress"}
-    if not TF_AVAILABLE:
+    _, _, ok = _tf_imports()
+    if not ok:
         return {"error": "TensorFlow not installed"}
     if not TRAINING_DATA_DIR.exists():
         return {"error": f"Training data directory not found: {TRAINING_DATA_DIR}"}
@@ -59,6 +59,7 @@ def start_training(epochs: int = EPOCHS, batch_size: int = BATCH_SIZE) -> dict:
 
 
 def _build_cnn(num_classes: int):
+    tf, _, _ = _tf_imports()
     base = tf.keras.applications.MobileNetV2(
         input_shape=(224, 224, 3),
         include_top=False,
@@ -90,11 +91,12 @@ def _run_training():
         "error": None, "completed": False, "accuracy": None,
     })
     try:
+        tf, ImageDataGenerator, ok = _tf_imports()
+        if not ok:
+            raise RuntimeError("TensorFlow not installed")
+
         MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-        # ── Data augmentation ─────────────────────────────────────
-        # rescale=1./255 normalises pixel values to [0, 1].
-        # Strong augmentation helps the scratch CNN generalise better.
         aug = ImageDataGenerator(
             rescale=1.0 / 255,
             validation_split=0.2,

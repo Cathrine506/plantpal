@@ -17,23 +17,43 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 
-try:
-    import tensorflow as tf
-    TF_AVAILABLE = True
-except ImportError:
-    TF_AVAILABLE = False
-
 IMG_SIZE = (224, 224)
 _model = None
 _class_labels = []
 _model_loaded = False
 _model_load_failed = False
+_tf = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 MODEL_DIR = PROJECT_ROOT / "model"
 MODEL_PATH = MODEL_DIR / "plant_model.h5"
 LABELS_PATH = MODEL_DIR / "labels.json"
 CLASS_NAMES_PATH = MODEL_DIR / "class_names.json"
+
+
+def _use_local_model() -> bool:
+    """
+    Local MobileNetV2 needs ~500MB+ RAM — too much for Render free tier.
+    Default: ON locally, OFF on Render (Plant.id only). Override with USE_LOCAL_MODEL.
+    """
+    explicit = os.getenv("USE_LOCAL_MODEL", "").strip().lower()
+    if explicit in ("1", "true", "yes"):
+        return True
+    if explicit in ("0", "false", "no"):
+        return False
+    return not bool(os.getenv("RENDER"))
+
+
+def _get_tensorflow():
+    global _tf
+    if _tf is not None:
+        return _tf
+    try:
+        import tensorflow as tf
+        _tf = tf
+        return tf
+    except ImportError:
+        return None
 
 
 def _labels_file() -> Path | None:
@@ -49,7 +69,6 @@ def _model_available() -> bool:
 
 
 def _load_model() -> bool:
-    """Load plant_model.h5 once. Returns True if ready for inference."""
     global _model, _class_labels, _model_loaded, _model_load_failed
     if _model is not None:
         return True
@@ -59,8 +78,9 @@ def _load_model() -> bool:
         return _model is not None
     _model_loaded = True
 
-    if not TF_AVAILABLE:
-        print("[scan] TensorFlow not installed — will try Plant.id fallback")
+    tf = _get_tensorflow()
+    if tf is None:
+        print("[scan] TensorFlow not installed")
         return False
     if not _model_available():
         print(f"[scan] No trained model at {MODEL_PATH}")
@@ -80,7 +100,6 @@ def _load_model() -> bool:
 
 
 def _predict_local(img: "Image.Image") -> dict | None:
-    """Run trained MobileNetV2 model. Returns None if unavailable or inference fails."""
     if not _load_model():
         return None
     try:
@@ -109,7 +128,6 @@ def _predict_local(img: "Image.Image") -> dict | None:
 
 
 def _call_plant_id_api(image_bytes: bytes) -> dict | None:
-    """Plant.id fallback when local model is missing or fails."""
     if not PLANT_ID_API_KEY:
         return None
     try:
@@ -132,7 +150,6 @@ def _call_plant_id_api(image_bytes: bytes) -> dict | None:
         result = data.get("result") or {}
         suggestions = (result.get("classification") or {}).get("suggestions") or []
         if not suggestions:
-            print("[scan] Plant.id returned no classification suggestions")
             return None
 
         plant = suggestions[0]
@@ -190,28 +207,34 @@ def predict_image(image_source) -> dict:
     except Exception as e:
         return {"error": f"Could not open image: {e}"}
 
-    # 1. Your trained model (primary)
-    local_result = _predict_local(img)
-    if local_result:
-        return local_result
+    # 1. Local trained model (local dev / when USE_LOCAL_MODEL=true)
+    if _use_local_model():
+        local_result = _predict_local(img)
+        if local_result:
+            return local_result
+        api_result = _call_plant_id_api(img_bytes)
+        if api_result:
+            api_result["severity"] = _estimate_scan_severity(
+                api_result["label"], api_result["confidence"]
+            )
+            api_result["fallback"] = True
+            return api_result
+    else:
+        # 2. Render / low-memory hosts: Plant.id only (no TensorFlow loaded)
+        api_result = _call_plant_id_api(img_bytes)
+        if api_result:
+            api_result["severity"] = _estimate_scan_severity(
+                api_result["label"], api_result["confidence"]
+            )
+            return api_result
 
-    # 2. Plant.id API (fallback)
-    api_result = _call_plant_id_api(img_bytes)
-    if api_result:
-        api_result["severity"] = _estimate_scan_severity(
-            api_result["label"], api_result["confidence"]
-        )
-        api_result["fallback"] = True
-        return api_result
-
-    # 3. Nothing worked
     hints = []
-    if not _model_available():
-        hints.append("Train local model: cd training && python train_model.py")
-    elif not TF_AVAILABLE:
-        hints.append("Install TensorFlow for local model, or set PLANT_ID_API_KEY for fallback")
+    if _use_local_model() and not _model_available():
+        hints.append("Train: cd training && python train_model.py")
+    if _use_local_model() and _get_tensorflow() is None:
+        hints.append("pip install tensorflow")
     if not PLANT_ID_API_KEY:
-        hints.append("Set PLANT_ID_API_KEY in .env for API fallback")
+        hints.append("Set PLANT_ID_API_KEY in environment")
     return {
         "error": "Scan unavailable. " + " ".join(hints) if hints else "Scan unavailable.",
         "simulated": False,

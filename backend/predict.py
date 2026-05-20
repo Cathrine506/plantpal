@@ -13,7 +13,7 @@ MODEL_PATH = os.path.join(
     "plant_model.h5"
 )
 
-model = load_model(MODEL_PATH)
+model = load_model(MODEL_PATH, compile=False)
 
 CLASS_NAMES = [
     "Healthy",
